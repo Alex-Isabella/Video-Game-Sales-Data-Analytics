@@ -1,16 +1,25 @@
-Best selling video games from 1988-2016
+Video Game Sales from 1988-2016
 
 ---Total Sales Per Year
+
 SELECT Year_of_Release AS Year, ROUND(SUM(Global_Sales), 2) AS Total_Sales
 FROM Video_Game_Sales
 WHERE Year BETWEEN '1988' AND '2016'
 Group By Year
 Order By Year
 
+---Best Selling Game Per Year
+
+SELECT Name, Year_of_Release, ROUND(MAX(Global_Sales), 2) AS Total_Sales
+FROM Video_Game_Sales
+WHERE Year_of_Release BETWEEN '1988' AND '2016'
+GROUP BY Year_of_Release
+ORDER BY Year_of_Release;
 
 --Distinct Genres
-Select Distinct Genre
-From Video_Game_Sales
+
+SELECT DISTINCT Genre
+FROM Video_Game_Sales
 
 ---Best Selling Genre, exluding no genre listed, By total global sales, broken down by region 
 
