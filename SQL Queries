@@ -1,88 +1,102 @@
 Video Game Sales from 1988-2016
 
+Quesitons:
+  Total sales per year?
+  Best selling game each year
+  What are the different types of genres?
+  Best selling genre by total global sales broken down by region?
+  Best genre by average user score?
+  Best genre by aberage critic score?
+  Best selling genre per year?
+  Total sales of best selling genre compared to the total market cap for each year?
+
+
+
+
 ---Total Sales Per Year
 
-SELECT Year_of_Release AS Year, ROUND(SUM(Global_Sales), 2) AS Total_Sales
-FROM Video_Game_Sales
-WHERE Year BETWEEN '1988' AND '2016'
-Group By Year
-Order By Year
+  SELECT Year_of_Release AS Year, ROUND(SUM(Global_Sales), 2) AS Total_Sales
+  FROM Video_Game_Sales
+  WHERE Year BETWEEN '1988' AND '2016'
+  Group By Year
+  Order By Year
 
 ---Best Selling Game Per Year
 
-SELECT Name, Year_of_Release, ROUND(MAX(Global_Sales), 2) AS Total_Sales
-FROM Video_Game_Sales
-WHERE Year_of_Release BETWEEN '1988' AND '2016'
-GROUP BY Year_of_Release
-ORDER BY Year_of_Release;
-
---Distinct Genres
-
-SELECT DISTINCT Genre
-FROM Video_Game_Sales
-
----Best Selling Genre, exluding no genre listed, By total global sales, broken down by region 
-
-SELECT Genre, 
-  ROUND(SUM(Global_Sales), 2) AS Total_Global_Sales, 
-  ROUND(SUM(NA_Sales), 2) AS North_America_Sales, 
-  ROUND(SUM(EU_Sales), 2) AS Europe_Sales, 
-  ROUND(SUM(JP_Sales), 2) AS Japan_Sales, 
-  ROUND(SUM(Other_Sales), 2) AS Misc_Sales
-FROM Video_Game_Sales
-WHERE Genre <> ''
-GROUP BY Genre
-ORDER BY Total_Global_Sales DESC;
-
----Best Genre by average user score
-
-SELECT Genre, 
-       ROUND(AVG(User_Score), 2) AS Avg_User_Score, 
-       ROUND(AVG(Critic_Score), 2) AS Avg_Critic_Score
-FROM Video_Game_Sales
-WHERE Genre <> ''
-GROUP BY Genre
-ORDER BY Avg_User_Score DESC;
-
----Best Genre by Average Critic Score
-
-SELECT Genre, 
-       ROUND(AVG(User_Score), 2) AS Avg_User_Score, 
-       ROUND(AVG(Critic_Score), 2) AS Avg_Critic_Score
-FROM Video_Game_Sales
-WHERE Genre <> ''
-GROUP BY Genre
-ORDER BY Avg_Critic_Score DESC;
-
---Top Selling Genre by Year of Release
-
-SELECT Year_of_Release, Genre, Total_Genre_Sales
-FROM (
-  SELECT Year_of_Release, Genre, ROUND(SUM(Global_Sales), 2) AS Total_Genre_Sales,
-         RANK() OVER (PARTITION BY Year_of_Release ORDER BY SUM(Global_Sales) DESC) AS Rank
-  FROM Video_Game_Sales
-  WHERE Year_of_Release BETWEEN '1988' AND '2016'
-  GROUP BY Year_of_Release, Genre
-) t
-WHERE Rank = 1 AND Year_of_Release BETWEEN '1988' AND '2016'
-ORDER BY Year_of_Release ASC;
-
----Top Selling Genre By Year of Release compared to Total Industry Sales
-
-SELECT t.Year_of_Release, t.Genre, t.Total_Genre_Sales, y.Total_Global_Sales
-FROM (
-  SELECT Year_of_Release, Genre, ROUND(SUM(Global_Sales), 2) AS Total_Genre_Sales,
-         RANK() OVER (PARTITION BY Year_of_Release ORDER BY SUM(Global_Sales) DESC) AS Rank
-  FROM Video_Game_Sales
-  WHERE Year_of_Release BETWEEN '1988' AND '2016'
-  GROUP BY Year_of_Release, Genre
-) t
-INNER JOIN (
-  SELECT Year_of_Release, ROUND(SUM(Global_Sales), 2) AS Total_Global_Sales
+  SELECT Name, Year_of_Release, ROUND(MAX(Global_Sales), 2) AS Total_Sales
   FROM Video_Game_Sales
   WHERE Year_of_Release BETWEEN '1988' AND '2016'
   GROUP BY Year_of_Release
-) y ON t.Year_of_Release = y.Year_of_Release
-WHERE t.Rank = 1 AND t.Year_of_Release BETWEEN '1988' AND '2016'
-ORDER BY t.Year_of_Release ASC;
+  ORDER BY Year_of_Release;
 
+--Distinct Genres
+
+  SELECT DISTINCT Genre
+  FROM Video_Game_Sales
+
+---Best Selling Genre, exluding no genre listed, By total global sales, broken down by region 
+
+  SELECT Genre, 
+    ROUND(SUM(Global_Sales), 2) AS Total_Global_Sales, 
+    ROUND(SUM(NA_Sales), 2) AS North_America_Sales, 
+    ROUND(SUM(EU_Sales), 2) AS Europe_Sales, 
+    ROUND(SUM(JP_Sales), 2) AS Japan_Sales, 
+    ROUND(SUM(Other_Sales), 2) AS Misc_Sales
+  FROM Video_Game_Sales
+  WHERE Genre <> ''
+  GROUP BY Genre
+  ORDER BY Total_Global_Sales DESC;
+
+---Best Genre by average user score
+
+  SELECT Genre, 
+    ROUND(AVG(User_Score), 2) AS Avg_User_Score, 
+    ROUND(AVG(Critic_Score), 2) AS Avg_Critic_Score
+  FROM Video_Game_Sales
+  WHERE Genre <> ''
+  GROUP BY Genre
+  ORDER BY Avg_User_Score DESC;
+
+---Best Genre by Average Critic Score
+
+  SELECT Genre, 
+    ROUND(AVG(User_Score), 2) AS Avg_User_Score, 
+    ROUND(AVG(Critic_Score), 2) AS Avg_Critic_Score
+  FROM Video_Game_Sales
+  WHERE Genre <> ''
+  GROUP BY Genre
+  ORDER BY Avg_Critic_Score DESC;
+
+--Top Selling Genre by Year of Release
+
+  SELECT Year_of_Release, Genre, Total_Genre_Sales
+  FROM (
+    SELECT Year_of_Release, Genre, ROUND(SUM(Global_Sales), 2) AS Total_Genre_Sales,
+           RANK() OVER (PARTITION BY Year_of_Release ORDER BY SUM(Global_Sales) DESC) AS Rank
+    FROM Video_Game_Sales
+    WHERE Year_of_Release BETWEEN '1988' AND '2016'
+    GROUP BY Year_of_Release, Genre
+  ) t
+  WHERE Rank = 1 AND Year_of_Release BETWEEN '1988' AND '2016'
+  ORDER BY Year_of_Release ASC;
+
+---Total Sales of Top Selling Genre By Year of Release compared to Total Industry Sales as a percent of market
+
+  SELECT t.Year_of_Release, t.Genre, t.Total_Genre_Sales, y.Total_Global_Sales, ROUND((t.Total_Genre_Sales / y.Total_Global_Sales) * 100, 2) AS Percent_of_Market
+  FROM (
+    SELECT Year_of_Release, Genre, ROUND(SUM(Global_Sales), 2) AS Total_Genre_Sales,
+         RANK() OVER (PARTITION BY Year_of_Release ORDER BY SUM(Global_Sales) DESC) AS Rank
+    FROM Video_Game_Sales
+    WHERE Year_of_Release BETWEEN '1988' AND '2016'
+    GROUP BY Year_of_Release, Genre
+  ) t
+  INNER JOIN (
+    SELECT Year_of_Release, ROUND(SUM(Global_Sales), 2) AS Total_Global_Sales
+    FROM Video_Game_Sales
+    WHERE Year_of_Release BETWEEN '1988' AND '2016'
+    GROUP BY Year_of_Release
+  ) y ON t.Year_of_Release = y.Year_of_Release
+  WHERE t.Rank = 1 AND t.Year_of_Release BETWEEN '1988' AND '2016'
+  ORDER BY t.Year_of_Release ASC;
+
+---FIN
